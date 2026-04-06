@@ -7,27 +7,31 @@ function Register({ setToken, setUsername }) {
     const [password, setPassword] = useState('');
     const [password2, setPassword2] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     function handleRegister() {
         setError('');
-
+        if (!username || !password || !password2) {
+            setError('Please fill in all fields!');
+            return;
+        }
         if (password !== password2) {
             setError('Passwords do not match!');
             return;
         }
-
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters!');
+            return;
+        }
+        setLoading(true);
         axios.post('http://127.0.0.1:8000/register/', {
             username,
             password1: password,
             password2
         })
             .then(() => {
-                // After registering login automatically
-                axios.post('http://127.0.0.1:8000/api/token/', {
-                    username,
-                    password
-                })
+                axios.post('http://127.0.0.1:8000/api/token/', { username, password })
                     .then(res => {
                         localStorage.setItem('token', res.data.access);
                         localStorage.setItem('username', username);
@@ -36,91 +40,161 @@ function Register({ setToken, setUsername }) {
                         navigate('/');
                     });
             })
-            .catch(() => setError('Registration failed. Username may already exist!'));
+            .catch(() => {
+                setError('Registration failed. Username may already exist!');
+                setLoading(false);
+            });
     }
 
     return (
         <div style={{
-            maxWidth: '400px',
-            margin: '3rem auto',
-            padding: '2rem',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            minHeight: '100vh',
+            background: '#f8fafc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem'
         }}>
-            <h1 style={{ color: '#1d4ed8', marginTop: 0 }}>
-                Create Account 📝
-            </h1>
+            <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '2.5rem',
+                width: '100%',
+                maxWidth: '420px',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.08)'
+            }}>
+                {/* Header */}
+                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🚀</div>
+                    <h1 style={{
+                        color: '#111827',
+                        margin: 0,
+                        fontSize: '1.75rem',
+                        fontWeight: '800'
+                    }}>Create Account</h1>
+                    <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>
+                        Join our blogging community
+                    </p>
+                </div>
 
-            {error && (
+                {error && (
+                    <div style={{
+                        color: '#dc2626',
+                        background: '#fef2f2',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '8px',
+                        marginBottom: '1rem',
+                        fontSize: '0.9rem',
+                        border: '1px solid #fca5a5'
+                    }}>{error}</div>
+                )}
+
+                <div style={{ marginBottom: '1rem' }}>
+                    <label style={{
+                        display: 'block',
+                        marginBottom: '0.4rem',
+                        color: '#374151',
+                        fontWeight: '600',
+                        fontSize: '0.9rem'
+                    }}>Username</label>
+                    <input
+                        type="text"
+                        placeholder="Choose a username"
+                        value={username}
+                        onChange={e => setUsernameInput(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '1rem',
+                            boxSizing: 'border-box'
+                        }}
+                    />
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                    <label style={{
+                        display: 'block',
+                        marginBottom: '0.4rem',
+                        color: '#374151',
+                        fontWeight: '600',
+                        fontSize: '0.9rem'
+                    }}>Password</label>
+                    <input
+                        type="password"
+                        placeholder="Min 8 characters"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '1rem',
+                            boxSizing: 'border-box'
+                        }}
+                    />
+                </div>
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{
+                        display: 'block',
+                        marginBottom: '0.4rem',
+                        color: '#374151',
+                        fontWeight: '600',
+                        fontSize: '0.9rem'
+                    }}>Confirm Password</label>
+                    <input
+                        type="password"
+                        placeholder="Repeat your password"
+                        value={password2}
+                        onChange={e => setPassword2(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '1rem',
+                            boxSizing: 'border-box'
+                        }}
+                    />
+                </div>
+
+                <button
+                    onClick={handleRegister}
+                    disabled={loading}
+                    style={{
+                        background: loading
+                            ? '#93c5fd'
+                            : 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.85rem',
+                        borderRadius: '8px',
+                        fontSize: '1rem',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        width: '100%',
+                        fontWeight: '600',
+                        boxShadow: '0 2px 8px rgba(29,78,216,0.3)'
+                    }}>
+                    {loading ? 'Creating account...' : 'Create Account'}
+                </button>
+
                 <p style={{
-                    color: '#dc2626', background: '#fef2f2',
-                    padding: '0.5rem', borderRadius: '6px'
+                    textAlign: 'center',
+                    marginTop: '1.5rem',
+                    color: '#6b7280',
+                    fontSize: '0.9rem'
                 }}>
-                    {error}
+                    Already have an account?{' '}
+                    <Link to="/login" style={{
+                        color: '#1d4ed8',
+                        fontWeight: '600',
+                        textDecoration: 'none'
+                    }}>Sign In</Link>
                 </p>
-            )}
-
-            <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={e => setUsernameInput(e.target.value)}
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    marginBottom: '1rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    boxSizing: 'border-box'
-                }}
-            />
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    marginBottom: '1rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    boxSizing: 'border-box'
-                }}
-            />
-            <input
-                type="password"
-                placeholder="Confirm Password"
-                value={password2}
-                onChange={e => setPassword2(e.target.value)}
-                style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    marginBottom: '1rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    boxSizing: 'border-box'
-                }}
-            />
-            <button onClick={handleRegister} style={{
-                background: '#1d4ed8',
-                color: 'white',
-                border: 'none',
-                padding: '0.75rem',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                cursor: 'pointer',
-                width: '100%'
-            }}>Create Account</button>
-
-            <p style={{ textAlign: 'center', marginTop: '1rem' }}>
-                Already have an account?{' '}
-                <Link to="/login" style={{ color: '#1d4ed8' }}>Login</Link>
-            </p>
+            </div>
         </div>
     );
 }
