@@ -51,4 +51,13 @@ export const updateProfile = (data) => API.put('/api/profile/update/', data, {
     headers: { 'Content-Type': 'multipart/form-data' }
 });
 
+// Stories
+export const getStories = () => API.get('/api/stories/');
+export const getStory = (id) => API.get(`/api/stories/${id}/`);
+export const createStory = (data) => API.post('/api/stories/create/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 30000
+});
+export const deleteStory = (id) => API.delete(`/api/stories/${id}/delete/`);
+
 export default API;

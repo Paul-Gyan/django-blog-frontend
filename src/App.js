@@ -24,7 +24,7 @@ function App() {
     <BrowserRouter>
       <Navbar token={token} setToken={setToken} username={username} />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home  token={token} username={username}/>} />
         <Route
           path="/login"
           element={<Login setToken={setToken} setUsername={setUsername} />}

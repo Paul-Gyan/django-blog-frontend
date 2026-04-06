@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPosts, getCategories } from '../api';
+import Stories from '../components/Stories';
 
-function Home() {
+function Home({ token, username }) {
     const [posts, setPosts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -41,10 +42,8 @@ function Home() {
     }
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: '#f8fafc'
-        }}>
+        <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
+
             {/* Hero Section */}
             <div style={{
                 background: 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)',
@@ -97,6 +96,9 @@ function Home() {
                     }}>Search</button>
                 </form>
             </div>
+
+            {/* Stories Bar */}
+            <Stories token={token} username={username} />
 
             <div style={{
                 maxWidth: '900px',
@@ -236,7 +238,6 @@ function Home() {
                             )}
 
                             <div style={{ padding: '1.5rem' }}>
-                                {/* Category Badge */}
                                 {post.category_name && (
                                     <span style={{
                                         background: '#dbeafe',
