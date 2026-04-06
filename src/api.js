@@ -29,7 +29,9 @@ export const getPost = (id) => API.get(`/api/posts/${id}/`);
 export const createPost = (data) => API.post('/api/posts/create/', data, {
     headers: { 'Content-Type': 'multipart/form-data' }
 });
-export const editPost = (id, data) => API.put(`/api/posts/${id}/edit/`, data);
+export const editPost = (id, data) => API.put(`/api/posts/${id}/edit/`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+});
 export const deletePost = (id) => API.delete(`/api/posts/${id}/delete/`);
 
 // Comments

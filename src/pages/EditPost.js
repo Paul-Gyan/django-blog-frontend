@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createPost, getCategories } from '../api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getPost, editPost, getCategories } from '../api';
 
-function CreatePost({ token }) {
+function EditPost({ token }) {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [category, setCategory] = useState('');
@@ -10,16 +12,30 @@ function CreatePost({ token }) {
     const [tags, setTags] = useState('');
     const [image, setImage] = useState(null);
     const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const navigate = useNavigate();
 
     useEffect(() => {
         if (!token) {
             navigate('/login');
             return;
         }
-        getCategories().then(res => setCategories(res.data));
-    }, [token, navigate]);
+        Promise.all([
+            getPost(id),
+            getCategories()
+        ]).then(([postRes, catRes]) => {
+            setTitle(postRes.data.title);
+            setContent(postRes.data.content);
+            setCategory(postRes.data.category || '');
+            setTags(postRes.data.tags ? postRes.data.tags.join(', ') : '');
+            setCategories(catRes.data);
+            setLoading(false);
+        }).catch(err => {
+            console.error(err);
+            setError('Failed to load post!');
+            setLoading(false);
+        });
+    }, [id, token, navigate]);
 
     function handleSubmit() {
         if (!title || !content) {
@@ -30,7 +46,6 @@ function CreatePost({ token }) {
         setError('');
 
         const tagList = tags.split(',').map(t => t.trim()).filter(t => t);
-
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
@@ -38,18 +53,20 @@ function CreatePost({ token }) {
         if (category) formData.append('category', category);
         if (image) formData.append('image', image);
 
-        createPost(formData)
-            .then(() => navigate('/'))
+        editPost(id, formData)
+            .then(() => navigate(`/post/${id}`))
             .catch(() => {
-                setError('Failed to create post!');
+                setError('Failed to update post!');
                 setSaving(false);
             });
     }
 
+    if (loading) return <p style={{ padding: '2rem' }}>Loading post...</p>;
+
     return (
         <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
             <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate(`/post/${id}`)}
                 style={{
                     background: 'none',
                     border: 'none',
@@ -59,7 +76,7 @@ function CreatePost({ token }) {
                     fontSize: '1rem',
                     marginBottom: '1rem',
                     padding: '0'
-                }}>← Back to Home</button>
+                }}>← Back to Post</button>
 
             <div style={{
                 border: '1px solid #e5e7eb',
@@ -68,7 +85,7 @@ function CreatePost({ token }) {
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
             }}>
                 <h1 style={{ color: '#1d4ed8', marginTop: 0 }}>
-                    Create New Post ✍️
+                    Edit Post ✏️
                 </h1>
 
                 {error && (
@@ -121,7 +138,7 @@ function CreatePost({ token }) {
                 {/* Tags */}
                 <input
                     type="text"
-                    placeholder="Tags (comma separated e.g. django, python, web)"
+                    placeholder="Tags (comma separated)"
                     value={tags}
                     onChange={e => setTags(e.target.value)}
                     style={{
@@ -142,7 +159,7 @@ function CreatePost({ token }) {
                         marginBottom: '0.5rem',
                         color: '#374151',
                         fontWeight: 'bold'
-                    }}>Post Image (optional)</label>
+                    }}>Replace Image (optional)</label>
                     <input
                         type="file"
                         accept="image/*"
@@ -157,7 +174,6 @@ function CreatePost({ token }) {
                     />
                 </div>
 
-                {/* Rich Text Editor */}
                 {/* Content */}
                 <div style={{ marginBottom: '1rem' }}>
                     <label style={{
@@ -197,11 +213,11 @@ function CreatePost({ token }) {
                         width: '100%',
                         marginTop: '1rem'
                     }}>
-                    {saving ? 'Publishing...' : 'Publish Post 🚀'}
+                    {saving ? 'Saving...' : 'Save Changes ✅'}
                 </button>
             </div>
         </div>
     );
 }
 
-export default CreatePost;
+export default EditPost;

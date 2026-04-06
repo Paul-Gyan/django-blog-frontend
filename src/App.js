@@ -9,6 +9,8 @@ import CreatePost from './pages/CreatePost';
 import Categories from './pages/Categories';
 import Profile from './pages/Profile';
 import EditProfile from './pages/EditProfile';
+import EditPost from './pages/EditPost';
+import DeletePost from './pages/DeletePost';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -50,6 +52,14 @@ function App() {
         <Route
           path="/profile/edit"
           element={<EditProfile token={token} username={username} />}
+        />
+        <Route
+          path="/post/:id/edit"
+          element={<EditPost token={token} />}
+        />
+        <Route
+          path="/post/:id/delete"
+          element={<DeletePost token={token} />}
         />
       </Routes>
     </BrowserRouter>
