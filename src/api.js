@@ -45,6 +45,8 @@ export const getCategories = () => API.get('/api/categories/');
 // Auth
 export const login = (data) => API.post('/api/token/', data);
 export const getProfile = (username) => API.get(`/api/profile/${username}/`);
-export const updateProfile = (data) => API.put('/api/profile/update/', data);
+export const updateProfile = (data) => API.put('/api/profile/update/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+});
 
 export default API;

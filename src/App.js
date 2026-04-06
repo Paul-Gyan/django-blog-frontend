@@ -7,6 +7,8 @@ import Register from './pages/Register';
 import PostDetail from './PostDetail';
 import CreatePost from './pages/CreatePost';
 import Categories from './pages/Categories';
+import Profile from './pages/Profile';
+import EditProfile from './pages/EditProfile';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -40,6 +42,14 @@ function App() {
         <Route
           path="/categories"
           element={<Categories />}
+        />
+        <Route
+          path="/profile/:username"
+          element={<Profile token={token} currentUser={username} />}
+        />
+        <Route
+          path="/profile/edit"
+          element={<EditProfile token={token} username={username} />}
         />
       </Routes>
     </BrowserRouter>
