@@ -60,4 +60,41 @@ export const createStory = (data) => API.post('/api/stories/create/', data, {
 });
 export const deleteStory = (id) => API.delete(`/api/stories/${id}/delete/`);
 
+// Videos
+export const getVideos = (params) => API.get('/api/videos/', { params });
+export const getVideo = (id) => API.get(`/api/videos/${id}/`);
+export const createVideo = (data) => API.post('/api/videos/create/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 60000
+});
+export const deleteVideo = (id) => API.delete(`/api/videos/${id}/delete/`);
+export const likeVideo = (id) => API.post(`/api/videos/${id}/like/`);
+export const commentVideo = (id, data) => API.post(`/api/videos/${id}/comment/`, data);
+export const deleteVideoComment = (id) => API.delete(`/api/videos/comments/${id}/delete/`);
+
+// Reports
+export const getReports = (params) => API.get('/api/reports/', { params });
+export const getReport = (id) => API.get(`/api/reports/${id}/`);
+export const createReport = (data) => API.post('/api/reports/create/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 60000
+});
+export const deleteReport = (id) => API.delete(`/api/reports/${id}/delete/`);
+export const likeReport = (id) => API.post(`/api/reports/${id}/like/`);
+export const commentReport = (id, data) => API.post(`/api/reports/${id}/comment/`, data);
+export const deleteReportComment = (id) => API.delete(`/api/reports/comments/${id}/delete/`);
+
+// Audio
+export const getAudios = (params) => API.get('/api/audios/', { params });
+export const getAudio = (id) => API.get(`/api/audios/${id}/`);
+export const createAudio = (data) => API.post('/api/audios/create/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 60000
+});
+export const deleteAudio = (id) => API.delete(`/api/audios/${id}/delete/`);
+export const likeAudio = (id) => API.post(`/api/audios/${id}/like/`);
+export const commentAudio = (id, data) => API.post(`/api/audios/${id}/comment/`, data);
+export const deleteAudioComment = (id) => API.delete(`/api/audios/comments/${id}/delete/`);
+
+
 export default API;

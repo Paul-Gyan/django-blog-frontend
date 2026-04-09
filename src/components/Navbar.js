@@ -64,6 +64,32 @@ function Navbar({ token, setToken, username }) {
                     background: isActive('/categories') ? 'rgba(255,255,255,0.15)' : 'transparent',
                     transition: 'all 0.2s'
                 }}>Categories</Link>
+
+                <Link to="/videos" style={{
+                    color: isActive('/vide') ? 'white' : 'rgba(255,255,255,0.7)',
+                    textDecoration: 'none',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    fontWeight: isActive('/videos') ? '600' : '400',
+                    background: isActive('/videos') ? 'rgba(255,255,255,0.15)' : 'transparent',
+                }}>Videos</Link>
+
+                <Link to="/reports" style={{
+                    color: isActive('/reports') ? 'white' : 'rgba(255,255,255,0.7)',
+                    textDecoration: 'none',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    fontWeight: isActive('/reports') ? '600' : '400',
+                    background: isActive('/reports') ? 'rgba(255,255,255,0.15)' : 'transparent',
+                }}>📡 Reports</Link>
+                <Link to="/music" style={{
+                    color: isActive('/music') ? 'white' : 'rgba(255,255,255,0.7)',
+                    textDecoration: 'none',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    fontWeight: isActive('/music') ? '600' : '400',
+                    background: isActive('/music') ? 'rgba(255,255,255,0.15)' : 'transparent',
+                }}>🎵 Music</Link>
             </div>
 
             {/* Right Side */}

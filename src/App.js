@@ -11,6 +11,9 @@ import Profile from './pages/Profile';
 import EditProfile from './pages/EditProfile';
 import EditPost from './pages/EditPost';
 import DeletePost from './pages/DeletePost';
+import Videos from './pages/Videos';
+import Reports from './pages/Reports';
+import Music from './pages/Music';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -60,6 +63,18 @@ function App() {
         <Route
           path="/post/:id/delete"
           element={<DeletePost token={token} />}
+        />
+        <Route
+        path="/videos"
+        element={<Videos token={token} username={username} />}
+        />
+        <Route
+        path="/reports"
+        element={<Reports token={token} username={username} />}
+        />
+        <Route
+        path="/music"
+        element={<Music token={token} username={username} />}
         />
       </Routes>
     </BrowserRouter>
