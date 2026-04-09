@@ -123,8 +123,8 @@ function Stories({ token, username }) {
                             cursor: 'pointer'
                         }}>
                         <div style={{
-                            width: '60px',
-                            height: '60px',
+                            width: '45px',
+                            height: '45px',
                             borderRadius: '50%',
                             background: '#f3f4f6',
                             border: '2px dashed #1d4ed8',

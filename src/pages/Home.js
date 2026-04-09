@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPosts, getCategories } from '../api';
 import Stories from '../components/Stories';
+import { theme } from '../styles/theme';
 
 function Home({ token, username }) {
     const [posts, setPosts] = useState([]);
@@ -13,11 +14,16 @@ function Home({ token, username }) {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const navigate = useNavigate();
+    const resultsRef = useRef(null);
 
-    useEffect(() => {
+    function fetchPosts(searchTerm, categoryTerm, pageNum) {
         setLoading(true);
         setError('');
-        getPosts({ search, category, page })
+        getPosts({
+            search: searchTerm,
+            category: categoryTerm,
+            page: pageNum
+        })
             .then(res => {
                 setPosts(res.data.posts);
                 setTotalPages(res.data.pages);
@@ -25,10 +31,15 @@ function Home({ token, username }) {
             })
             .catch(err => {
                 console.error(err);
-                setError('Failed to load posts. Make sure Django server is running!');
+                setError('Failed to load posts!');
                 setLoading(false);
             });
-    }, [page, category, search]);
+    }
+
+    useEffect(() => {
+        fetchPosts(search, category, page);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search, category, page]);
 
     useEffect(() => {
         getCategories()
@@ -39,143 +50,200 @@ function Home({ token, username }) {
     function handleSearch(e) {
         e.preventDefault();
         setPage(1);
+        fetchPosts(search, category, 1);
+        setTimeout(() => {
+            resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+    }
+
+    function handleCategoryChange(slug) {
+        setCategory(slug);
+        setPage(1);
+    }
+
+    function handlePageChange(newPage) {
+        setPage(newPage);
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
+        <div style={{ minHeight: '100vh', background: theme.colors.light }}>
 
-            {/* Hero Section */}
+            {/* Compact Hero Section */}
             <div style={{
-                background: 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)',
-                padding: '4rem 2rem',
+                background: theme.gradients.rainbow,
+                padding: '1rem',
                 textAlign: 'center',
-                color: 'white'
+                color: 'white',
+                position: 'relative',
+                overflow: 'hidden'
             }}>
-                <h1 style={{
-                    fontSize: '2.5rem',
-                    fontWeight: '800',
-                    margin: '0 0 1rem 0',
-                    letterSpacing: '-1px'
-                }}>Welcome to MyBlog 📝</h1>
-                <p style={{
-                    fontSize: '1.1rem',
-                    opacity: 0.85,
-                    marginBottom: '2rem'
-                }}>Discover stories, ideas and expertise</p>
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                    <h1 style={{
+                        fontSize: '1.3rem',
+                        fontWeight: '900',
+                        margin: '0 0 0.5rem 0',
+                        letterSpacing: '-0.5px',
+                        lineHeight: '1.1'
+                    }}>
+                        Share Your Story{' '}
+                        <span style={{ opacity: 0.9 }}>With The World ✨</span>
+                    </h1>
 
-                {/* Search Bar */}
-                <form onSubmit={handleSearch} style={{
-                    display: 'flex',
-                    gap: '0.5rem',
-                    maxWidth: '500px',
-                    margin: '0 auto'
-                }}>
-                    <input
-                        type="text"
-                        placeholder="Search posts..."
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        style={{
-                            flex: 1,
-                            padding: '0.75rem 1rem',
-                            borderRadius: '8px',
+                    {/* Search Bar */}
+                    <form onSubmit={handleSearch} style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        maxWidth: '550px',
+                        margin: '0 auto'
+                    }}>
+                        <input
+                            type="text"
+                            placeholder="🔍 Search posts, authors, categories..."
+                            value={search}
+                            onChange={e => {
+                                const value = e.target.value;
+                                setSearch(value);
+                                setLoading(true);
+                                getPosts({
+                                    search: value,
+                                    category: category,
+                                    page: 1
+                                })
+                                    .then(res => {
+                                        setPosts(res.data.posts);
+                                        setTotalPages(res.data.pages);
+                                        setPage(1);
+                                        setLoading(false);
+                                        setTimeout(() => {
+                                            resultsRef.current?.scrollIntoView({
+                                                behavior: 'smooth'
+                                            });
+                                        }, 300);
+                                    })
+                                    .catch(() => setLoading(false));
+                            }}
+                            style={{
+                                flex: 1,
+                                padding: '0.6rem 1.2rem',
+                                borderRadius: theme.borderRadius.full,
+                                border: 'none',
+                                fontSize: '0.9rem',
+                                boxShadow: theme.shadows.lg,
+                                outline: 'none'
+                            }}
+                        />
+                        <button type="submit" style={{
+                            background: theme.colors.dark,
+                            color: 'white',
                             border: 'none',
-                            fontSize: '1rem',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                        }}
-                    />
-                    <button type="submit" style={{
-                        background: 'white',
-                        color: '#1d4ed8',
-                        border: 'none',
-                        padding: '0.75rem 1.5rem',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontWeight: '600',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                    }}>Search</button>
-                </form>
+                            padding: '0.6rem 1.2rem',
+                            borderRadius: theme.borderRadius.full,
+                            cursor: 'pointer',
+                            fontWeight: '700',
+                            boxShadow: theme.shadows.lg,
+                            fontSize: '0.9rem'
+                        }}>Search</button>
+                    </form>
+                </div>
             </div>
 
-            {/* Stories Bar */}
-            <Stories token={token} username={username} />
+            {/* Stories Bar — compact padding */}
+            <div style={{ padding: '0.5rem 0' }}>
+                <Stories token={token} username={username} />
+            </div>
 
+            {/* Main Content */}
             <div style={{
-                maxWidth: '900px',
-                margin: '0 auto',
-                padding: '2rem'
+                maxWidth: '1200px',
+                margin: '1rem auto',
+                padding: '0 1.5rem'
             }}>
                 {/* Categories Filter */}
                 <div style={{
                     display: 'flex',
-                    gap: '0.5rem',
-                    marginBottom: '2rem',
+                    gap: '0.4rem',
+                    marginBottom: '1rem',
                     flexWrap: 'wrap',
                     alignItems: 'center'
                 }}>
                     <span style={{
-                        color: '#6b7280',
-                        fontSize: '0.9rem',
+                        color: theme.colors.gray,
+                        fontSize: '0.8rem',
                         fontWeight: '600'
                     }}>Filter:</span>
 
                     <button
-                        onClick={() => { setCategory(''); setPage(1); }}
+                        onClick={() => handleCategoryChange('')}
                         style={{
-                            background: category === '' ? '#1d4ed8' : 'white',
-                            color: category === '' ? 'white' : '#374151',
-                            border: '1px solid #e5e7eb',
-                            padding: '0.3rem 0.8rem',
-                            borderRadius: '20px',
+                            background: category === ''
+                                ? theme.gradients.primary
+                                : 'white',
+                            color: category === '' ? 'white' : theme.colors.dark,
+                            border: `1px solid ${theme.colors.grayLight}`,
+                            padding: '0.2rem 0.7rem',
+                            borderRadius: theme.borderRadius.full,
                             cursor: 'pointer',
-                            fontSize: '0.85rem',
+                            fontSize: '0.8rem',
                             fontWeight: '500',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                            boxShadow: theme.shadows.sm
                         }}>All Posts</button>
 
                     {categories.map(cat => (
                         <button
                             key={cat.id}
-                            onClick={() => { setCategory(cat.slug); setPage(1); }}
+                            onClick={() => handleCategoryChange(cat.slug)}
                             style={{
-                                background: category === cat.slug ? '#1d4ed8' : 'white',
-                                color: category === cat.slug ? 'white' : '#374151',
-                                border: '1px solid #e5e7eb',
-                                padding: '0.3rem 0.8rem',
-                                borderRadius: '20px',
+                                background: category === cat.slug
+                                    ? theme.gradients.primary
+                                    : 'white',
+                                color: category === cat.slug
+                                    ? 'white'
+                                    : theme.colors.dark,
+                                border: `1px solid ${theme.colors.grayLight}`,
+                                padding: '0.2rem 0.7rem',
+                                borderRadius: theme.borderRadius.full,
                                 cursor: 'pointer',
-                                fontSize: '0.85rem',
+                                fontSize: '0.8rem',
                                 fontWeight: '500',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                boxShadow: theme.shadows.sm
                             }}>{cat.name}</button>
                     ))}
                 </div>
 
                 {/* Section Title */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '1.5rem'
-                }}>
+                <div
+                    ref={resultsRef}
+                    style={{
+                        marginBottom: '1rem'
+                    }}>
                     <h2 style={{
-                        margin: 0,
-                        color: '#111827',
-                        fontWeight: '700'
-                    }}>Latest Posts</h2>
+                        margin: '0 0 0.3rem 0',
+                        color: theme.colors.dark,
+                        fontWeight: '800',
+                        fontSize: '1.2rem'
+                    }}>
+                        {search
+                            ? `🔍 Results for "${search}"`
+                            : '🔥 Latest Posts'}
+                    </h2>
                     <span style={{
-                        color: '#6b7280',
-                        fontSize: '0.9rem'
+                        color: theme.colors.gray,
+                        fontSize: '0.8rem',
+                        background: 'white',
+                        padding: '0.2rem 0.7rem',
+                        borderRadius: theme.borderRadius.full,
+                        border: `1px solid ${theme.colors.grayLight}`,
+                        display: 'inline-block'
                     }}>Page {page} of {totalPages}</span>
                 </div>
 
-                {/* Error Message */}
+                {/* Error */}
                 {error && (
                     <div style={{
-                        color: '#dc2626',
+                        color: theme.colors.danger,
                         background: '#fef2f2',
-                        padding: '1rem',
-                        borderRadius: '8px',
+                        padding: '0.75rem',
+                        borderRadius: theme.borderRadius.md,
                         marginBottom: '1rem',
                         border: '1px solid #fca5a5'
                     }}>{error}</div>
@@ -185,124 +253,192 @@ function Home({ token, username }) {
                 {loading ? (
                     <div style={{
                         textAlign: 'center',
-                        padding: '4rem',
-                        color: '#6b7280'
+                        padding: '3rem',
+                        color: theme.colors.gray
                     }}>
-                        <div style={{ fontSize: '2rem' }}>⏳</div>
-                        <p>Loading posts...</p>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+                        <p style={{ fontWeight: '600' }}>Loading posts...</p>
                     </div>
                 ) : posts.length === 0 ? (
                     <div style={{
                         textAlign: 'center',
-                        padding: '4rem',
-                        color: '#6b7280'
+                        padding: '3rem',
+                        color: theme.colors.gray,
+                        background: 'white',
+                        borderRadius: theme.borderRadius.xl,
+                        boxShadow: theme.shadows.sm
                     }}>
-                        <div style={{ fontSize: '3rem' }}>📭</div>
-                        <p>No posts found!</p>
+                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+                        <h3 style={{
+                            color: theme.colors.dark,
+                            marginBottom: '0.5rem'
+                        }}>
+                            {search
+                                ? `No results for "${search}"`
+                                : 'No posts found!'}
+                        </h3>
+                        <p style={{ fontSize: '0.9rem' }}>
+                            {search
+                                ? 'Try a different search term'
+                                : 'Be the first to share your story'}
+                        </p>
+                        {token && !search && (
+                            <button
+                                onClick={() => navigate('/create')}
+                                style={{
+                                    background: theme.gradients.primary,
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '0.6rem 1.5rem',
+                                    borderRadius: theme.borderRadius.full,
+                                    cursor: 'pointer',
+                                    fontWeight: '700',
+                                    marginTop: '1rem',
+                                    fontSize: '0.9rem'
+                                }}>+ Create First Post</button>
+                        )}
                     </div>
                 ) : (
-                    posts.map(post => (
-                        <div
-                            key={post.id}
-                            onClick={() => navigate(`/post/${post.id}`)}
-                            style={{
-                                background: 'white',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '12px',
-                                marginBottom: '1.5rem',
-                                overflow: 'hidden',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                                cursor: 'pointer',
-                                transition: 'transform 0.2s, box-shadow 0.2s'
-                            }}
-                            onMouseEnter={e => {
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.1)';
-                            }}
-                            onMouseLeave={e => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)';
-                            }}>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                        gap: '1rem'
+                    }}>
+                        {posts.map((post, index) => (
+                            <div
+                                key={post.id}
+                                onClick={() => navigate(`/post/${post.id}`)}
+                                style={{
+                                    background: 'white',
+                                    borderRadius: theme.borderRadius.lg,
+                                    overflow: 'hidden',
+                                    boxShadow: theme.shadows.sm,
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.2s, box-shadow 0.2s',
+                                    border: `1px solid ${theme.colors.grayLight}`
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = theme.shadows.colored;
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = theme.shadows.sm;
+                                }}>
 
-                            {/* Post Image */}
-                            {post.image && (
-                                <img
-                                    src={`http://127.0.0.1:8000${post.image}`}
-                                    alt={post.title}
-                                    style={{
-                                        width: '100%',
-                                        height: '220px',
-                                        objectFit: 'cover'
-                                    }}
-                                />
-                            )}
-
-                            <div style={{ padding: '1.5rem' }}>
-                                {post.category_name && (
-                                    <span style={{
-                                        background: '#dbeafe',
-                                        color: '#1d4ed8',
-                                        padding: '0.2rem 0.7rem',
-                                        borderRadius: '20px',
-                                        fontSize: '0.75rem',
-                                        fontWeight: '600',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.5px'
-                                    }}>{post.category_name}</span>
+                                {/* Post Image or Color Bar */}
+                                {post.image ? (
+                                    <img
+                                        src={`http://127.0.0.1:8000${post.image}`}
+                                        alt={post.title}
+                                        style={{
+                                            width: '100%',
+                                            height: '150px',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                ) : (
+                                    <div style={{
+                                        height: '6px',
+                                        background: [
+                                            theme.gradients.primary,
+                                            theme.gradients.secondary,
+                                            theme.gradients.cool,
+                                            theme.gradients.warm,
+                                        ][index % 4]
+                                    }} />
                                 )}
 
-                                <h2 style={{
-                                    color: '#111827',
-                                    margin: '0.75rem 0 0.5rem 0',
-                                    fontSize: '1.3rem',
-                                    fontWeight: '700',
-                                    lineHeight: '1.4'
-                                }}>{post.title}</h2>
+                                <div style={{ padding: '1rem' }}>
+                                    {post.category_name && (
+                                        <span style={{
+                                            background: `${theme.colors.primary}15`,
+                                            color: theme.colors.primary,
+                                            padding: '0.2rem 0.6rem',
+                                            borderRadius: theme.borderRadius.full,
+                                            fontSize: '0.7rem',
+                                            fontWeight: '700',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px'
+                                        }}>{post.category_name}</span>
+                                    )}
 
-                                <p style={{
-                                    color: '#6b7280',
-                                    fontSize: '0.85rem',
-                                    marginBottom: '0.75rem'
-                                }}>
-                                    By <strong style={{ color: '#374151' }}>
-                                        {post.author_name}
-                                    </strong> •{' '}
-                                    {new Date(post.date).toLocaleDateString('en-US', {
-                                        year: 'numeric', month: 'long', day: 'numeric'
-                                    })}
-                                </p>
+                                    <h2 style={{
+                                        color: theme.colors.dark,
+                                        margin: '0.5rem 0 0.3rem 0',
+                                        fontSize: '0.95rem',
+                                        fontWeight: '800',
+                                        lineHeight: '1.4'
+                                    }}>{post.title}</h2>
 
-                                <p style={{
-                                    color: '#4b5563',
-                                    lineHeight: '1.6',
-                                    marginBottom: '1rem'
-                                }}>
-                                    {post.content.substring(0, 150)}...
-                                </p>
+                                    <p style={{
+                                        color: theme.colors.gray,
+                                        fontSize: '0.75rem',
+                                        marginBottom: '0.5rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.3rem'
+                                    }}>
+                                        <span style={{
+                                            width: '18px',
+                                            height: '18px',
+                                            borderRadius: '50%',
+                                            background: theme.gradients.primary,
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: 'white',
+                                            fontWeight: '700',
+                                            fontSize: '0.6rem',
+                                            flexShrink: 0
+                                        }}>
+                                            {post.author_name?.charAt(0).toUpperCase()}
+                                        </span>
+                                        <strong style={{ color: '#475569' }}>
+                                            {post.author_name}
+                                        </strong> •{' '}
+                                        {new Date(post.date).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric'
+                                        })}
+                                    </p>
 
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
-                                }}>
+                                    <p style={{
+                                        color: '#64748b',
+                                        lineHeight: '1.5',
+                                        marginBottom: '0.75rem',
+                                        fontSize: '0.82rem'
+                                    }}>
+                                        {post.content.substring(0, 80)}...
+                                    </p>
+
                                     <div style={{
                                         display: 'flex',
-                                        gap: '1rem',
-                                        color: '#6b7280',
-                                        fontSize: '0.9rem'
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        paddingTop: '0.75rem',
+                                        borderTop: `1px solid ${theme.colors.grayLight}`
                                     }}>
-                                        <span>❤️ {post.total_likes}</span>
-                                        <span>💬 {post.total_comments}</span>
+                                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                            <span style={{
+                                                color: theme.colors.gray,
+                                                fontSize: '0.8rem'
+                                            }}>❤️ {post.total_likes}</span>
+                                            <span style={{
+                                                color: theme.colors.gray,
+                                                fontSize: '0.8rem'
+                                            }}>💬 {post.total_comments}</span>
+                                        </div>
+                                        <span style={{
+                                            color: theme.colors.primary,
+                                            fontSize: '0.8rem',
+                                            fontWeight: '700'
+                                        }}>Read →</span>
                                     </div>
-                                    <span style={{
-                                        color: '#1d4ed8',
-                                        fontSize: '0.9rem',
-                                        fontWeight: '600'
-                                    }}>Read more →</span>
                                 </div>
                             </div>
-                        </div>
-                    ))
+                        ))}
+                    </div>
                 )}
 
                 {/* Pagination */}
@@ -314,42 +450,53 @@ function Home({ token, username }) {
                         marginTop: '2rem'
                     }}>
                         <button
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            onClick={() => handlePageChange(Math.max(1, page - 1))}
                             disabled={page === 1}
                             style={{
-                                background: page === 1 ? '#e5e7eb' : 'white',
-                                color: page === 1 ? '#9ca3af' : '#374151',
-                                border: '1px solid #e5e7eb',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '6px',
-                                cursor: page === 1 ? 'not-allowed' : 'pointer'
+                                background: page === 1
+                                    ? theme.colors.grayLight : 'white',
+                                color: page === 1
+                                    ? theme.colors.gray : theme.colors.dark,
+                                border: `1px solid ${theme.colors.grayLight}`,
+                                padding: '0.4rem 1rem',
+                                borderRadius: theme.borderRadius.full,
+                                cursor: page === 1 ? 'not-allowed' : 'pointer',
+                                fontWeight: '600',
+                                fontSize: '0.85rem'
                             }}>← Prev</button>
 
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                             <button
                                 key={p}
-                                onClick={() => setPage(p)}
+                                onClick={() => handlePageChange(p)}
                                 style={{
-                                    background: page === p ? '#1d4ed8' : 'white',
-                                    color: page === p ? 'white' : '#374151',
-                                    border: '1px solid #e5e7eb',
-                                    padding: '0.5rem 1rem',
-                                    borderRadius: '6px',
+                                    background: page === p
+                                        ? theme.gradients.primary : 'white',
+                                    color: page === p ? 'white' : theme.colors.dark,
+                                    border: `1px solid ${theme.colors.grayLight}`,
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: theme.borderRadius.full,
                                     cursor: 'pointer',
-                                    fontWeight: page === p ? '600' : '400'
+                                    fontWeight: page === p ? '700' : '400',
+                                    fontSize: '0.85rem',
+                                    minWidth: '35px'
                                 }}>{p}</button>
                         ))}
 
                         <button
-                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
                             disabled={page === totalPages}
                             style={{
-                                background: page === totalPages ? '#e5e7eb' : 'white',
-                                color: page === totalPages ? '#9ca3af' : '#374151',
-                                border: '1px solid #e5e7eb',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '6px',
-                                cursor: page === totalPages ? 'not-allowed' : 'pointer'
+                                background: page === totalPages
+                                    ? theme.colors.grayLight : 'white',
+                                color: page === totalPages
+                                    ? theme.colors.gray : theme.colors.dark,
+                                border: `1px solid ${theme.colors.grayLight}`,
+                                padding: '0.4rem 1rem',
+                                borderRadius: theme.borderRadius.full,
+                                cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                                fontWeight: '600',
+                                fontSize: '0.85rem'
                             }}>Next →</button>
                     </div>
                 )}
